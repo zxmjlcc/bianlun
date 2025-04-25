@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>辩论赛：科技的发展</title>
+    <style>
+        /* --- 全局样式 --- */
+        body {
+            margin: 0;
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            background-color: #e0f2f7; /* 淡蓝色背景 */
+            color: #333;
+            overflow: hidden; /* 防止滚动条 */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 页面容器 --- */
+        .page {
+            display: none; /* 默认隐藏所有页面 */
+            flex-grow: 1; /* 占据剩余空间 */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box; /* 包含内边距 */
+            position: relative; /* 用于绝对定位子元素 */
+            overflow-y: auto; /* 如果内容过多允许滚动 */
+        }
+
+        .page.active {
+            display: flex; /* 显示活动页面 */
+        }
+
+        /* --- 主页面样式 --- */
+        #main-page {
+            background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%); /* 蓝色渐变背景 */
+        }
+
+        #title-container {
+            perspective: 800px; /* 创建3D空间 */
+            margin-bottom: 20px; /* 减少标题容器和下方内容的距离 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #debate-title {
+            font-size: 4.5vw; /* 使用视口宽度单位 */
+            font-weight: bold;
+            color: #01579b; /* 深蓝色 */
+            line-height: 1.4;
+            text-align: center;
+            transform-style: preserve-3d;
+            transform: rotateX(15deg) rotateY(-5deg); /* 轻微倾斜 */
+            text-shadow:
+                1px 1px 0px #ccc,
+                2px 2px 0px #bbb,
+                3px 3px 0px #aaa,
+                4px 4px 0px #999,
+                5px 5px 5px rgba(0, 0, 0, 0.4);
+            padding: 10px; /* 稍微减少内边距 */
+            margin-bottom: 10px; /* 主标题和副标题间距 */
+            transition: transform 0.5s ease;
+        }
+         #debate-title:hover {
+             transform: rotateX(10deg) rotateY(0deg) scale(1.02);
+         }
+
+        .title-line {
+            display: block; /* 每行分开 */
+        }
+
+        #pro-part {
+            color: #e53935; /* 红色 */
+        }
+
+        #con-part {
+            color: #1e88e5; /* 蓝色 */
+        }
+
+        /* --- 副标题样式 --- */
+        #subtitle {
+            font-size: 1.5vw;
+            color: #0277bd;
+            margin-top: 0;
+            margin-bottom: 30px; /* 副标题和观点间距 */
+            font-weight: normal;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* --- 对决观点样式 --- */
+        #viewpoints {
+            display: flex;
+            justify-content: center; /* 中心对齐 */
+            align-items: center;    /* 垂直居中 */
+            width: 90%;
+            max-width: 900px;
+            margin-bottom: 40px; /* 观点和按钮间距 */
+        }
+
+        .viewpoint {
+            font-weight: bold;
+            font-size: 1.8vw;
+            padding: 15px 25px; /* 增加内边距 */
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.5); /* 半透明背景 */
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+            flex: 1; /* 占据空间 */
+            margin: 0 10px; /* 与 VS 分隔符的间距 */
+            min-width: 150px; /* 最小宽度 */
+        }
+        .pro-viewpoint { /* 正方特定样式 */
+             border-left: 5px solid #e53935;
+             color: #b71c1c; /* 更深的红色 */
+        }
+         .con-viewpoint { /* 反方特定样式 */
+             border-right: 5px solid #1e88e5;
+             color: #0d47a1; /* 更深的蓝色 */
+         }
+
+        .vs-separator {
+            font-size: 3.5vw; /* 放大 VS */
+            font-weight: bold;
+            color: #01579b; /* 深蓝色 */
+            padding: 0 15px; /* 增加左右间距 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+
+        #goto-timer-btn {
+            /* margin-top: 40px; */ /* 间距由 viewpoints 控制 */
+            padding: 12px 25px;
+            font-size: 1.5vw;
+            cursor: pointer;
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+         #goto-timer-btn:hover {
+             background-color: #0277bd;
+         }
+
+
+        /* --- 计时页面样式 (保持不变) --- */
+         #timer-page { /* ... (与上一版本相同) ... */
+            background-color: #f0f8ff;
+            justify-content: space-between;
+         }
+        #timer-content { /* ... */
+            display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%;
+        }
+         #single-timer-area { /* ... */
+            display: flex; flex-direction: column; align-items: center; width: 100%;
+         }
+         #dual-timer-area { display: none; /* ... (与上一版本相同) ... */
+             display: flex; flex-direction: row; justify-content: space-around; align-items: flex-start; width: 90%; max-width: 1000px; margin-top: 20px;
+         }
+        #timer-display { /* ... */
+            font-size: 10vw; font-weight: bold; color: #333; margin-bottom: 30px; font-family: 'Courier New', Courier, monospace; background-color: #fff; padding: 20px 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); min-width: 300px; text-align: center;
+        }
+        #timer-controls button, .dual-timer-controls button { /* ... */
+             padding: 10px 20px; font-size: 1.2em; margin: 0 10px; cursor: pointer; border: none; border-radius: 5px; transition: background-color 0.3s ease, box-shadow 0.3s ease; box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        .start-pause-btn { /* ... */
+             background-color: #4CAF50; color: white;
+        } .start-pause-btn:hover { background-color: #45a049; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+        .start-pause-btn.paused { background-color: #ff9800; }
+        .start-pause-btn.paused:hover { background-color: #fb8c00; }
+        .reset-btn { /* ... */
+            background-color: #f44336; color: white;
+        } .reset-btn:hover { background-color: #e53935; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+        .dual-timer-block { /* ... */
+             display: flex; flex-direction: column; align-items: center; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin: 0 10px; flex: 1; min-width: 250px;
+         }
+         .dual-timer-block h3 { /* ... */ margin-top: 0; margin-bottom: 15px; font-size: 1.5em; color: #0277bd; }
+        .dual-timer-display { /* ... */ font-size: 6vw; font-weight: bold; color: #333; margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; background-color: #f8f9fa; padding: 10px 20px; border-radius: 8px; min-width: 200px; text-align: center; }
+        .dual-timer-controls { /* ... */ margin-top: 10px; }
+         #reset-btn-container { /* ... */ margin-top: 30px; width: 100%; text-align: center; }
+        #phase-nav { /* ... (与上一版本相同) ... */
+            position: sticky; bottom: 0; left: 0; width: 100%; background-color: #0277bd; padding: 10px 0; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; box-sizing: border-box;
+        }
+        #phase-nav button { /* ... */ padding: 8px 15px; font-size: 1em; cursor: pointer; background-color: #e1f5fe; color: #01579b; border: 1px solid #81d4fa; border-radius: 20px; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; margin: 0 5px; }
+        #phase-nav button:hover { background-color: #b3e5fc; transform: translateY(-2px); }
+        #phase-nav button.active-phase { background-color: #01579b; color: white; font-weight: bold; border-color: #01579b; }
+         #goto-main-btn { /* ... */ background-color: transparent; border: none; color: white; font-size: 1.2em; cursor: pointer; padding: 0 15px; transition: color 0.3s ease; }
+         #goto-main-btn:hover { color: #e1f5fe; }
+
+         /* --- 辩论开始动画样式 --- */
+        #animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Start semi-transparent black */
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Ensure it's on top */
+            opacity: 0; /* Start fully transparent for fade-in */
+        }
+        #animation-overlay.animate {
+             display: flex; /* Show it */
+             animation: overlayAnimate 2s forwards ease-in-out; /* Total animation */
+        }
+        #animation-text {
+            font-size: 8vw; /* Large text */
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(255, 69, 0, 0.8), /* Orange glow */
+                         0 0 15px rgba(255, 165, 0, 0.7);
+            opacity: 0; /* Start hidden */
+            transform: scale(0.5) rotate(-5deg); /* Start small and slightly rotated */
+        }
+        #animation-overlay.animate #animation-text {
+             animation: textAnimate 1.8s 0.1s forwards ease-out; /* Text animation, delayed slightly */
+        }
+
+        /* 动画 Keyframes */
+        @keyframes overlayAnimate {
+            0% { opacity: 0; background-color: rgba(255, 255, 255, 0); } /* Start transparent */
+            10% { opacity: 1; background-color: rgba(255, 255, 255, 0.9); } /* Quick flash to white */
+            25% { opacity: 1; background-color: rgba(0, 0, 0, 0.8); } /* Fade to dark overlay */
+            80% { opacity: 1; background-color: rgba(0, 0, 0, 0.8); } /* Hold dark overlay */
+            100% { opacity: 0; background-color: rgba(0, 0, 0, 0); } /* Fade out overlay */
+        }
+
+        @keyframes textAnimate {
+            0% { opacity: 0; transform: scale(0.5) rotate(-5deg); }
+            30% { opacity: 1; transform: scale(1.1) rotate(3deg); } /* Overshoot slightly */
+            50% { opacity: 1; transform: scale(1) rotate(0deg); } /* Settle */
+            80% { opacity: 1; transform: scale(1) rotate(0deg); } /* Hold text */
+            100% { opacity: 0; transform: scale(0.8) rotate(5deg); } /* Fade out text */
+        }
+
+
+         /* 响应式调整 */
+         @media (max-width: 768px) {
+             #debate-title { font-size: 6vw; }
+             #subtitle { font-size: 2vw; margin-bottom: 25px;}
+             .viewpoint { font-size: 2.5vw; padding: 10px 15px; }
+             .vs-separator { font-size: 5vw; }
+             #goto-timer-btn { font-size: 3vw; }
+             #animation-text { font-size: 12vw; }
+
+             #timer-display { font-size: 15vw; min-width: 250px; }
+             .dual-timer-display { font-size: 10vw; min-width: 150px; }
+             #dual-timer-area { flex-direction: column; align-items: center; width: 100%; }
+             .dual-timer-block { width: 80%; margin-bottom: 20px; min-width: auto; }
+             #phase-nav button { font-size: 0.9em; padding: 6px 10px; }
+         }
+         @media (max-width: 480px) {
+              #debate-title { font-size: 8vw; transform: rotateX(5deg) rotateY(0deg); text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.4); }
+              #subtitle { font-size: 3vw; margin-bottom: 20px;}
+              #viewpoints { flex-direction: column; /* Stack viewpoints on smallest screens */ margin-bottom: 30px;}
+             .viewpoint { font-size: 4vw; width: 80%; margin: 5px 0; } /* Adjust width and margin for column layout */
+             .pro-viewpoint { border-left-width: 4px; border-right: none;}
+             .con-viewpoint { border-right-width: 4px; border-left: none;}
+             .vs-separator { font-size: 8vw; padding: 10px 0; } /* VS between stacked blocks */
+             #goto-timer-btn { font-size: 4vw; }
+             #animation-text { font-size: 15vw; }
+
+             #timer-display { font-size: 18vw; padding: 15px 20px; min-width: auto; width: 80%; }
+             .dual-timer-display { font-size: 12vw; padding: 8px 15px; min-width: auto; width: 70%;}
+             .dual-timer-block { width: 90%; }
+             .dual-timer-controls button { font-size: 1em; padding: 8px 15px; }
+             #timer-controls button { font-size: 1em; padding: 8px 15px; }
+             #phase-nav { padding: 8px 0; }
+             #phase-nav button { font-size: 0.8em; padding: 5px 8px; margin: 0 2px; }
+         }
+
+    </style>
+</head>
+<body>
+
+    <div id="main-page" class="page active">
+        <div id="title-container">
+            <h1 id="debate-title">
+                <span class="title-line">科技的发展</span>
+                <span class="title-line">是<span id="pro-part">利大于弊</span></span>
+                <span class="title-line">还是<span id="con-part">弊大于利</span></span>
+            </h1>
+             <p id="subtitle">六（7）班辩论赛 | 2025年 | 科技发展主题</p>
+        </div>
+        <div id="viewpoints">
+            <div class="viewpoint pro-viewpoint">正方：利大于弊</div>
+            <span class="vs-separator">VS</span>
+            <div class="viewpoint con-viewpoint">反方：弊大于利</div>
+        </div>
+        <button id="goto-timer-btn">进入计时</button>
+    </div>
+
+    <div id="timer-page" class="page">
+        <div id="timer-content">
+            <div id="single-timer-area">
+                <div id="timer-display">00:00</div>
+                <div id="timer-controls">
+                    <button id="start-pause-btn" class="start-pause-btn">开始</button>
+                    </div>
+            </div>
+
+            <div id="dual-timer-area">
+                <div class="dual-timer-block" id="pro-timer-block">
+                    <h3>正方计时</h3>
+                    <div class="dual-timer-display" id="pro-timer-display">00:00</div>
+                    <div class="dual-timer-controls">
+                        <button id="pro-start-pause-btn" class="start-pause-btn">开始</button>
+                    </div>
+                </div>
+                <div class="dual-timer-block" id="con-timer-block">
+                    <h3>反方计时</h3>
+                    <div class="dual-timer-display" id="con-timer-display">00:00</div>
+                    <div class="dual-timer-controls">
+                        <button id="con-start-pause-btn" class="start-pause-btn">开始</button>
+                    </div>
+                </div>
+            </div>
+
+             <div id="reset-btn-container">
+                 <button id="reset-btn" class="reset-btn">复位</button>
+            </div>
+        </div>
+
+        <div id="phase-nav">
+             <button id="goto-main-btn" title="返回主页">🏠</button>
+            <button class="phase-btn" data-time="120" data-phase="立论">立论 (2:00)</button>
+            <button class="phase-btn" data-time="120" data-phase="陈词">陈词 (2:00)</button>
+            <button class="phase-btn" data-time="300" data-phase="自由辩">自由辩 (5:00)</button>
+            <button class="phase-btn" data-time="180" data-phase="结辩">结辩 (3:00)</button>
+        </div>
+    </div>
+
+    <div id="animation-overlay">
+        <div id="animation-text">辩论开始!</div>
+    </div>
+
+    <script>
+        // --- DOM 元素获取 (Add Animation Overlay) ---
+        const mainPage = document.getElementById('main-page');
+        const timerPage = document.getElementById('timer-page');
+        const gotoTimerBtn = document.getElementById('goto-timer-btn');
+        const gotoMainBtn = document.getElementById('goto-main-btn');
+        const animationOverlay = document.getElementById('animation-overlay'); // Get overlay
+
+        // --- Timer elements (same as before) ---
+        const singleTimerArea = document.getElementById('single-timer-area');
+        const timerDisplay = document.getElementById('timer-display');
+        const startPauseBtn = document.getElementById('start-pause-btn');
+        const dualTimerArea = document.getElementById('dual-timer-area');
+        const proTimerDisplay = document.getElementById('pro-timer-display');
+        const proStartPauseBtn = document.getElementById('pro-start-pause-btn');
+        const conTimerDisplay = document.getElementById('con-timer-display');
+        const conStartPauseBtn = document.getElementById('con-start-pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const phaseButtons = document.querySelectorAll('.phase-btn');
+
+        // --- 计时器状态变量 (same as before) ---
+        let timerInterval = null, totalSeconds = 0, secondsLeft = 0, isPaused = false;
+        let proTimerInterval = null, proTotalSeconds = 0, proSecondsLeft = 0, isProPaused = false;
+        let conTimerInterval = null, conTotalSeconds = 0, conSecondsLeft = 0, isConPaused = false;
+        let currentPhaseButton = null, currentPhaseType = 'single';
+
+        // --- 页面切换逻辑 ---
+        function showPage(pageToShow) {
+            mainPage.classList.remove('active');
+            timerPage.classList.remove('active');
+            pageToShow.classList.add('active');
+             // Ensure overlay is hidden when switching back to main
+            if(pageToShow === mainPage) {
+                animationOverlay.style.display = 'none';
+                animationOverlay.classList.remove('animate');
+            }
+        }
+
+        // --- MODIFIED: Event Listener for "进入计时" Button ---
+        gotoTimerBtn.addEventListener('click', () => {
+            // 1. Show and Animate Overlay
+            animationOverlay.style.display = 'flex'; // Make it visible first
+            animationOverlay.classList.add('animate');
+
+            // 2. Set Timeout to Switch Page after animation (adjust time based on CSS)
+            // Animation total duration is 2s
+            setTimeout(() => {
+                showPage(timerPage); // Switch to timer page
+                // Reset overlay for next potential use (optional, but good practice)
+                animationOverlay.style.display = 'none';
+                animationOverlay.classList.remove('animate');
+            }, 2000); // 2000ms = 2s (matches animation duration)
+        });
+
+        // --- Event Listener for "返回主页" Button ---
+        gotoMainBtn.addEventListener('click', () => {
+             stopAllTimers();
+             showPage(mainPage);
+        });
+
+        // --- 计时器核心功能 (Functions formatTime, updateDisplay, stopSingleTimer, startPauseSingleTimer, stopProTimer, stopConTimer, startPauseProTimer, startPauseConTimer, stopAllTimers, resetTimer, setPhase remain THE SAME as the previous version) ---
+        function formatTime(seconds) { /* ... same ... */
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+        function updateDisplay(displayElement, seconds) { /* ... same ... */
+            displayElement.textContent = formatTime(seconds);
+            if (seconds <= 10 && seconds > 0) { displayElement.style.color = '#e53935'; }
+            else if (seconds > 0) { displayElement.style.color = '#333'; }
+            if (seconds <= 0) { displayElement.textContent = "时间到!"; displayElement.style.color = '#e53935'; }
+        }
+        function stopSingleTimer() { /* ... same ... */
+            clearInterval(timerInterval); timerInterval = null; isPaused = false; startPauseBtn.textContent = '开始'; startPauseBtn.classList.remove('paused'); if(secondsLeft <= 0) updateDisplay(timerDisplay, 0);
+        }
+        function startPauseSingleTimer() { /* ... same ... */
+             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; isPaused = true; startPauseBtn.textContent = '继续'; startPauseBtn.classList.add('paused'); }
+             else if (secondsLeft > 0) { isPaused = false; startPauseBtn.textContent = '暂停'; startPauseBtn.classList.remove('paused'); if(timerDisplay.style.color === 'rgb(229, 57, 53)') timerDisplay.style.color = '#333'; timerInterval = setInterval(() => { if (secondsLeft > 0) { secondsLeft--; updateDisplay(timerDisplay, secondsLeft); } else { stopSingleTimer(); } }, 1000); }
+        }
+        function stopProTimer() { /* ... same ... */
+             clearInterval(proTimerInterval); proTimerInterval = null; isProPaused = false; proStartPauseBtn.textContent = '开始'; proStartPauseBtn.classList.remove('paused'); if(proSecondsLeft <= 0) updateDisplay(proTimerDisplay, 0);
+        }
+        function stopConTimer() { /* ... same ... */
+             clearInterval(conTimerInterval); conTimerInterval = null; isConPaused = false; conStartPauseBtn.textContent = '开始'; conStartPauseBtn.classList.remove('paused'); if(conSecondsLeft <= 0) updateDisplay(conTimerDisplay, 0);
+        }
+        function startPauseProTimer() { /* ... same ... */
+             if (proTimerInterval) { clearInterval(proTimerInterval); proTimerInterval = null; isProPaused = true; proStartPauseBtn.textContent = '继续'; proStartPauseBtn.classList.add('paused'); }
+             else if (proSecondsLeft > 0) { isProPaused = false; proStartPauseBtn.textContent = '暂停'; proStartPauseBtn.classList.remove('paused'); if(proTimerDisplay.style.color === 'rgb(229, 57, 53)') proTimerDisplay.style.color = '#333'; proTimerInterval = setInterval(() => { if (proSecondsLeft > 0) { proSecondsLeft--; updateDisplay(proTimerDisplay, proSecondsLeft); } else { stopProTimer(); } }, 1000); }
+        }
+        function startPauseConTimer() { /* ... same ... */
+            if (conTimerInterval) { clearInterval(conTimerInterval); conTimerInterval = null; isConPaused = true; conStartPauseBtn.textContent = '继续'; conStartPauseBtn.classList.add('paused'); }
+            else if (conSecondsLeft > 0) { isConPaused = false; conStartPauseBtn.textContent = '暂停'; conStartPauseBtn.classList.remove('paused'); if(conTimerDisplay.style.color === 'rgb(229, 57, 53)') conTimerDisplay.style.color = '#333'; conTimerInterval = setInterval(() => { if (conSecondsLeft > 0) { conSecondsLeft--; updateDisplay(conTimerDisplay, conSecondsLeft); } else { stopConTimer(); } }, 1000); }
+        }
+        function stopAllTimers() { /* ... same ... */ stopSingleTimer(); stopProTimer(); stopConTimer(); }
+        function resetTimer() { /* ... same ... */
+            stopAllTimers(); if (currentPhaseType === 'single') { secondsLeft = totalSeconds; updateDisplay(timerDisplay, secondsLeft); } else if (currentPhaseType === 'dual') { proSecondsLeft = proTotalSeconds; conSecondsLeft = conTotalSeconds; updateDisplay(proTimerDisplay, proSecondsLeft); updateDisplay(conTimerDisplay, conSecondsLeft); } timerDisplay.style.color = '#333'; proTimerDisplay.style.color = '#333'; conTimerDisplay.style.color = '#333';
+        }
+        function setPhase(button, time, phaseName) { /* ... same ... */
+            stopAllTimers(); const phaseTime = parseInt(time, 10); if (phaseName === '自由辩') { currentPhaseType = 'dual'; singleTimerArea.style.display = 'none'; dualTimerArea.style.display = 'flex'; proTotalSeconds = phaseTime; conTotalSeconds = phaseTime; proSecondsLeft = proTotalSeconds; conSecondsLeft = conTotalSeconds; updateDisplay(proTimerDisplay, proSecondsLeft); updateDisplay(conTimerDisplay, conSecondsLeft); proTimerDisplay.style.color = '#333'; conTimerDisplay.style.color = '#333'; } else { currentPhaseType = 'single'; singleTimerArea.style.display = 'flex'; dualTimerArea.style.display = 'none'; totalSeconds = phaseTime; secondsLeft = totalSeconds; updateDisplay(timerDisplay, secondsLeft); timerDisplay.style.color = '#333'; } if (currentPhaseButton) { currentPhaseButton.classList.remove('active-phase'); } button.classList.add('active-phase'); currentPhaseButton = button;
+        }
+
+        // --- 事件监听器绑定 (Start/Pause/Reset/Phase buttons - same as before) ---
+        startPauseBtn.addEventListener('click', startPauseSingleTimer);
+        proStartPauseBtn.addEventListener('click', startPauseProTimer);
+        conStartPauseBtn.addEventListener('click', startPauseConTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        phaseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setPhase(button, button.dataset.time, button.dataset.phase);
+            });
+        });
+
+        // --- 初始化 (same as before) ---
+        if (phaseButtons.length > 0) { const firstButton = phaseButtons[0]; setPhase(firstButton, firstButton.dataset.time, firstButton.dataset.phase); }
+        else { totalSeconds = 0; secondsLeft = 0; updateDisplay(timerDisplay, 0); singleTimerArea.style.display = 'flex'; dualTimerArea.style.display = 'none'; currentPhaseType = 'single'; }
+        showPage(mainPage); // Initial page display
+
+    </script>
+
+</body>
+</html>
